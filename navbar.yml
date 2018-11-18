@@ -1,0 +1,8 @@
+main:
+  user: [
+    link : [
+      page: 'IDS.ids_plugin_route',
+      icon: 'filter',
+      title: 'IDS'
+    ]
+  ]

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <style>
+        .demo-list-action {
+          width: 2000px;
+        }
+        .mdl-textfield{
+            width:1000px;
+        }
+    </style>
+    <main class="mdl-layout__content mdl-cell mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop">
+        {% if IDS_Plugin_results %}
+            <section class="section mdl-shadow--2dp">
+                <div class="mdl-card__title">
+                    <h3 class="mdl-card__title-text">Current Files Matched</h3>
+                </div>
+                <div class="mdl-card__actions">
+                        {% with table_dict=IDS_Plugin_results, table_header=["File ID", "MD5 Hash", "Classification"], url_for_value='unum.edit_upload_file_route' %}
+                            {% include "subtemplates/_table_object.html" %}
+                        {% endwith %}
+                </div>
+            </section>
+        {% endif %}
+        <section class="section mdl-shadow--2dp">
+            <div class="mdl-card__title">
+                <h3 class="mdl-card__title-text">{{ title }}</h3>
+            </div>
+            <div class="mdl-card__actions">
+                <form class="form" method="post" role="form">
+                    {{ form.hidden_tag() }}
+                    {% with form_object=ids_plugin_list_name, form_object_name="ids_plugin_list_name", form_object_rows=1, form_object_label="List Name", form_object_value=form.ids_plugin_list_name %}
+                        {% include "subtemplates/_form_object_textfield.html" %}
+                    {% endwith %}
+                    {% with form_object=ids_rules, form_object_name="ids_rules", form_object_rows=40, form_object_label="IDS Rules", form_object_value=form.ids_plugin_rules %}
+                        {% include "subtemplates/_form_object_code_textfield.html" %}
+                    {% endwith %}
+                    <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                            value=data-val.value>
+                        Save
+                    </button>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock %}

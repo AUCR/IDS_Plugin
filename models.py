@@ -1,7 +1,6 @@
 # coding=utf-8
 """IDS Plugin default database tables."""
 import udatetime as datetime
-from flask import current_app
 from aucr_app import db
 
 
@@ -38,18 +37,18 @@ class IDSRules(db.Model):
     __searchable__ = ['id', 'ids_plugin_list_name', 'modify_time_stamp', 'created_by']
     __tablename__ = 'ids_rules'
     id = db.Column(db.Integer, primary_key=True)
-    ids_plugin_list_name = db.Column(db.String(32), index=True)
+    ids_plugin_list_name = db.Column(db.String(32), index=True, unique=True)
     created_time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     modify_time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     group_access = db.Column(db.Integer, db.ForeignKey('groups.id'))
+    ids_rules = db.Column(db.String(4912000), index=True)
 
     def __repr__(self):
         return '<IDS {}>'.format(self.ids_plugin_list_name)
 
     def to_dict(self):
         """Return dictionary object type for API calls."""
-        ids_plugin_rule_file = current_app.mongo.db.aucr.find_one({"filename": self.ids_plugin_list_name})
         data = {
             'id': self.id,
             'ids_plugin_list_name': self.ids_plugin_list_name,
@@ -57,7 +56,7 @@ class IDSRules(db.Model):
             'modify_time_stamp': self.modify_time_stamp.isoformat() + 'Z',
             'created_by': self.created_by,
             'group_access': self.group_access,
-            'ids_rule': ids_plugin_rule_file["fileobj"]
+            'ids_rule': self.ids_rules
         }
         return data
 

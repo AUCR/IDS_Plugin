@@ -63,7 +63,7 @@ def create():
             new_ids_rule_list = IDSRules(created_by=current_user.id, group_access=form.group_access.data[0],
                                          ids_plugin_list_name=form.ids_plugin_list_name,
                                          created_time_stamp=udatetime.utcnow(),
-                                         modify_time_stamp=udatetime.utcnow())
+                                         modify_time_stamp=udatetime.utcnow(), ids_rules=form.ids_rules)
             db.session.add(new_ids_rule_list)
             db.session.commit()
             flash("The IDS rule has been created.")
@@ -92,9 +92,6 @@ def edit():
                 rabbit_mq_server_ip = current_app.config['RABBITMQ_SERVER']
                 ids_plugin.ids_rule = request.form["ids_rules"]
                 ids_plugin.ids_plugin_list_name = request.form["ids_plugin_list_name"]
-                current_app.mongo.db.aucr.delete_one({"filename": ids_plugin.ids_plugin_list_name})
-                data = {"filename": request.form["ids_plugin_list_name"], "fileobj": request.form["ids_rules"]}
-                current_app.mongo.db.aucr.insert_one(data)
                 mq_config_dict = get_mq_yaml_configs()
                 files_config_dict = mq_config_dict["reports"]
                 for item in files_config_dict:
@@ -103,6 +100,7 @@ def edit():
                         index_mq_aucr_report(str(ids_plugin.id), str(rabbit_mq_server_ip), item["ids"][0])
                 flash("The IDS Rule " + str(ids_plugin.ids_plugin_list_name) +
                       " has been updated and the rule is running.")
+                db.session.commit()
         return redirect(url_for('IDS.ids_plugin_route'))
     if request.method == "GET":
         if ids_plugin:
@@ -113,10 +111,9 @@ def edit():
                 item_dict = {"id": item.file_matches, "MD5 Hash": item.matches,
                              "Classification": item.file_classification}
                 ids_plugin_results_dict[str(item.file_matches)] = item_dict
-            ids_plugin_rule_file = current_app.mongo.db.aucr.find_one({"filename": ids_plugin.ids_plugin_list_name})
-            ids_plugin_dict = {"id": ids_plugin.id, "ids_rules": ids_plugin_rule_file["fileobj"],
+            ids_plugin_dict = {"id": ids_plugin.id, "ids_rules": ids_plugin.ids_rule,
                                "ids_plugin_list_name": ids_plugin.ids_plugin_list_name}
-            form.ids_plugin_rules = ids_plugin_rule_file["fileobj"]
+            form.ids_plugin_rules = ids_plugin.ids_rule
             return render_template('edit_ids_rule.html', title='Edit IDS Ruleset', form=form,
                                    groups=group_info, table_dict=ids_plugin_dict,
                                    ids_plugin_results=ids_plugin_results_dict)
